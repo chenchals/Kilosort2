@@ -19,7 +19,6 @@ else
 end
 
 fprintf('Getting channel whitening matrix... \n');
-fid = fopen(ops.fbinary, 'r');
 if ops.GPU
     CC = gpuArray.zeros( Nchan,  Nchan, 'single');
 else
@@ -30,11 +29,20 @@ end
 % irange = [NT/8:(NT-NT/8)];
 
 ibatch = 1;
+if ~isfield(ops,'dataAdapter')
+    fid = fopen(ops.fbinary, 'r');
+end
 while ibatch<=Nbatch    
     offset = max(0, twind + 2*NchanTOT*((NT - ops.ntbuff) * (ibatch-1) - 2*ops.ntbuff));
-    fseek(fid, offset, 'bof');
-    buff = fread(fid, [NchanTOT NTbuff], '*int16');
-        
+
+    if ~isfield(ops,'dataAdapter')
+        fseek(fid, offset, 'bof');
+        buff = fread(fid, [NchanTOT NTbuff], '*int16');
+    else
+        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
+    end  
+    
+    
     if isempty(buff)
         break;
     end
@@ -75,7 +83,10 @@ while ibatch<=Nbatch
 end
 CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
 
-fclose(fid);
+if ~isfield(ops,'dataAdapter')
+   fclose(fid);
+end
+
 fprintf('Channel-whitening filters computed. \n');
 
 if ops.whiteningRange<Inf

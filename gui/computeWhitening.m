@@ -45,7 +45,6 @@ else
 end
 ops.b1 = b1; ops.a1 = a1;
 
-fid = fopen(ops.fbinary, 'r');
 Nchan = rez.ops.Nchan;
 if ops.GPU
     CC = gpuArray.zeros( Nchan,  Nchan, 'single');
@@ -60,12 +59,20 @@ else
 end
 
 ibatch = 1;
+if ~isfield(ops,'dataAdapter')
+    fid = fopen(ops.fbinary, 'r');
+end
 while ibatch<=5  
     %drawnow; pause(0.05); 
     offset = max(0, twind + 2*NchanTOT*((NT - ops.ntbuff) * (ibatch-1) - 2*ops.ntbuff));
-    fseek(fid, offset, 'bof');
-    buff = fread(fid, [NchanTOT NTbuff], '*int16');
         
+    if ~isfield(ops,'dataAdapter')
+        fseek(fid, offset, 'bof');
+        buff = fread(fid, [NchanTOT NTbuff], '*int16');
+    else
+        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
+    end
+
     if isempty(buff)
         break;
     end
@@ -82,7 +89,9 @@ while ibatch<=5
 end
 CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
 
-fclose(fid);
+if ~isfield(ops,'dataAdapter')
+   fclose(fid);
+end
 
 if ops.whiteningRange<Inf
     %drawnow; pause(0.05); 

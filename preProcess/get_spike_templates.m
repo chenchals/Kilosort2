@@ -18,8 +18,6 @@ else
     [b1, a1] = butter(3, ops.fshigh/ops.fs*2, 'high');
 end
 
-fid = fopen(ops.fbinary, 'r');
-
 % irange = [NT/8:(NT-NT/8)];
 
 ibatch = 1;
@@ -27,11 +25,20 @@ dd = gpuArray.zeros(61, 5e4, 'single');
 ich = gpuArray.zeros(5e4,1, 'int16');
 k = 0;
 
+if ~isfield(ops,'dataAdapter')
+    fid = fopen(ops.fbinary, 'r');
+end
 while ibatch<=Nbatch    
     offset = twind + 2*NchanTOT*NT* (ibatch-1);
-    fseek(fid, offset, 'bof');
-    buff = fread(fid, [NchanTOT NTbuff], '*int16');
-        
+    
+    if ~isfield(ops,'dataAdapter')
+        fseek(fid, offset, 'bof');
+        buff = fread(fid, [NchanTOT NTbuff], '*int16');
+    else
+        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
+    end
+    
+    
     if isempty(buff)
         break;
     end
@@ -109,6 +116,7 @@ CC = dd * dd';
 wPCA = U(:, 1:nPCs);
 wPCA(:,1) = - wPCA(:,1) * sign(wPCA(21,1));
 
-
-fclose(fid);
+if ~isfield(ops,'dataAdapter')
+   fclose(fid);
+end
 
