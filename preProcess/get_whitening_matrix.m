@@ -85,6 +85,8 @@ CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
 
 if ~isfield(ops,'dataAdapter')
    fclose(fid);
+else
+    ops.dataAdapter.closeAll();
 end
 
 fprintf('Channel-whitening filters computed. \n');

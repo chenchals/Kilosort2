@@ -91,6 +91,8 @@ CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
 
 if ~isfield(ops,'dataAdapter')
    fclose(fid);
+else
+   ops.dataAdapter.closeAll();
 end
 
 if ops.whiteningRange<Inf

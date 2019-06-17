@@ -67,7 +67,10 @@ Wrot = get_whitening_matrix(rez);
 
 fprintf('Time %3.0fs. Loading raw data and applying filters... \n', toc);
 
-fid         = fopen(ops.fbinary, 'r');
+if ~isfield(ops,'dataAdapter')
+    fid = fopen(ops.fbinary, 'r');
+end
+
 if ~ops.useRAM
     fidW        = fopen(ops.fproc,   'w');
     DATA = [];
@@ -88,9 +91,14 @@ for ibatch = 1:Nbatch
     else
         ioffset = ops.ntbuff;
     end
-    fseek(fid, offset, 'bof');
     
-    buff = fread(fid, [NchanTOT NTbuff], '*int16');
+    if ~isfield(ops,'dataAdapter')
+        fseek(fid, offset, 'bof');
+        buff = fread(fid, [NchanTOT NTbuff], '*int16');
+    else
+        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
+    end    
+
     if isempty(buff)
         break;
     end
@@ -137,7 +145,12 @@ Wrot        = gather_try(Wrot);
 rez.Wrot    = Wrot;
 
 fclose(fidW);
-fclose(fid);
+
+if ~isfield(ops,'dataAdapter')
+   fclose(fid);
+else
+   ops.dataAdapter.closeAll();
+end
 
 fprintf('Time %3.0fs. Finished preprocessing %d batches. \n', toc, Nbatch);
 

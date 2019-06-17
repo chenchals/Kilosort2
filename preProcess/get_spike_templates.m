@@ -118,5 +118,7 @@ wPCA(:,1) = - wPCA(:,1) * sign(wPCA(21,1));
 
 if ~isfield(ops,'dataAdapter')
    fclose(fid);
+else
+    ops.dataAdapter.closeAll();
 end
 
