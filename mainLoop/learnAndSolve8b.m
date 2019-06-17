@@ -27,7 +27,7 @@ Nnearest    = min(ops.Nchan, 32);
 sigmaMask  = ops.sigmaMask;
 
 
-ops.spkTh = -6; % why am I overwriting this here?
+ops.spkTh = getOr(ops,'spkTh',-6); % why am I overwriting this here?
 
 nt0 = ops.nt0;
 nt0min  = rez.ops.nt0min; 
@@ -340,6 +340,12 @@ rez.iNeighPC    = gather(iC(:, iW));
 
 
 nKeep = 20; % how many PCs to keep
+
+if nBatches < nKeep
+    fprintf('learnAndSolve8b.m: nKeep [%d] is greater than nBatches [%d], changing nKeep=nBatches\n',nKeep,nBatches);
+    nKeep = nBatches;
+end
+
 rez.W_a = zeros(nt0 * Nrank, nKeep, Nfilt, 'single');
 rez.W_b = zeros(nBatches, nKeep, Nfilt, 'single');
 rez.U_a = zeros(Nchan* Nrank, nKeep, Nfilt, 'single');
