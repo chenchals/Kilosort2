@@ -154,6 +154,7 @@ rez.ccb = gather(ccb0);
 % sort by new manifold algorithm
 [ccb1, iorig] = sortBatches2(ccb0);
 
+if ops.fig
 figure;
 subplot(1,2,1)
 imagesc(ccb0, [-5 5]); drawnow
@@ -166,6 +167,7 @@ imagesc(ccb1, [-5 5]); drawnow
 xlabel('sorted batches')
 ylabel('sorted batches')
 title('AFTER sorting')
+end
 
 rez.iorig = gather(iorig);
 rez.ccbsort = gather(ccb1);

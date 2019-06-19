@@ -1,4 +1,13 @@
 function Wrot = get_whitening_matrix(rez)
+% Modifications:
+%    for DataAdapter
+%    logic:
+%    Replaced
+%        offset = max(0, twind + 2.*NchanTOT*((NT - ops.ntbuff) *
+%          (ibatch-1) - 2*ops.ntbuff)); with
+%        offset = max(0, twind + ops.dataTypeBytes*NchanTOT*((NT -
+%          ops.ntbuff) * (ibatch-1) - ops.dataTypeBytes*ops.ntbuff)); 
+%
 
 ops = rez.ops;
 Nbatch = ops.Nbatch;
@@ -25,23 +34,16 @@ else
     CC = zeros( Nchan,  Nchan, 'single');
 end
 
-
-% irange = [NT/8:(NT-NT/8)];
-
 ibatch = 1;
-if ~isfield(ops,'dataAdapter')
-    fid = fopen(ops.fbinary, 'r');
-end
 while ibatch<=Nbatch    
-    offset = max(0, twind + 2*NchanTOT*((NT - ops.ntbuff) * (ibatch-1) - 2*ops.ntbuff));
+    %offset = max(0, twind + 2.*NchanTOT*((NT - ops.ntbuff) * (ibatch-1) - 2*ops.ntbuff));
+    offset = max(0,...
+        twind ...
+        + ops.dataTypeBytes*NchanTOT*((NT - ops.ntbuff) * (ibatch-1)...
+        - ops.dataTypeBytes*ops.ntbuff)...
+        );
 
-    if ~isfield(ops,'dataAdapter')
-        fseek(fid, offset, 'bof');
-        buff = fread(fid, [NchanTOT NTbuff], '*int16');
-    else
-        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
-    end  
-    
+     buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
     
     if isempty(buff)
         break;
@@ -61,12 +63,7 @@ while ibatch<=Nbatch
     
     % subtract the mean from each channel
     dataRAW = dataRAW - mean(dataRAW, 1);
-    
-%     datr = fft(dataRAW, [], 1);
-%     datr = datr./(1 + abs(datr));
-%     datr(irange, :) = 0;
-%     datr = real(ifft(datr, [], 1));
-%     
+
     datr = filter(b1, a1, dataRAW);
     datr = flipud(datr);
     datr = filter(b1, a1, datr);
@@ -82,12 +79,6 @@ while ibatch<=Nbatch
     ibatch = ibatch + ops.nSkipCov;
 end
 CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
-
-if ~isfield(ops,'dataAdapter')
-   fclose(fid);
-else
-    ops.dataAdapter.closeAll();
-end
 
 fprintf('Channel-whitening filters computed. \n');
 

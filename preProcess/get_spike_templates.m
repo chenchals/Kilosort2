@@ -1,4 +1,9 @@
 % function [wTEMP, wPCA] = get_spike_templates(rez, nPCs)
+% Modifications: (Although not used...)
+%     Replaced:
+%        offset = twind + 2*NchanTOT*NT* (ibatch-1);
+%        offset = twind + ops.dataTypeBytes*NchanTOT*NT* (ibatch-1); 
+%
 
 ops = rez.ops;
 Nbatch = ops.Nbatch;
@@ -25,20 +30,11 @@ dd = gpuArray.zeros(61, 5e4, 'single');
 ich = gpuArray.zeros(5e4,1, 'int16');
 k = 0;
 
-if ~isfield(ops,'dataAdapter')
-    fid = fopen(ops.fbinary, 'r');
-end
 while ibatch<=Nbatch    
-    offset = twind + 2*NchanTOT*NT* (ibatch-1);
+    offset = twind + ops.dataTypeBytes*NchanTOT*NT* (ibatch-1);
     
-    if ~isfield(ops,'dataAdapter')
-        fseek(fid, offset, 'bof');
-        buff = fread(fid, [NchanTOT NTbuff], '*int16');
-    else
-        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
-    end
-    
-    
+    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
+
     if isempty(buff)
         break;
     end
@@ -116,9 +112,4 @@ CC = dd * dd';
 wPCA = U(:, 1:nPCs);
 wPCA(:,1) = - wPCA(:,1) * sign(wPCA(21,1));
 
-if ~isfield(ops,'dataAdapter')
-   fclose(fid);
-else
-    ops.dataAdapter.closeAll();
-end
 

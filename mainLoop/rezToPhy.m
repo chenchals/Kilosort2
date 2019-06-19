@@ -1,13 +1,10 @@
-
 function rezToPhy(rez, savePath)
 % pull out results from kilosort's rez to either return to workspace or to
 % save in the appropriate format for the phy GUI to run on. If you provide
 % a savePath it should be a folder, and you will need to have npy-matlab
 % available (https://github.com/kwikteam/npy-matlab)
-
-
-
-
+% Modifications:
+%    Check last lines for make params.py
 
 % spikeTimes will be in samples, not seconds
 rez.W = gather(single(rez.Wphy));
@@ -171,13 +168,17 @@ if ~isempty(savePath)
         
         fprintf(fid,['dat_path = ''',fname ext '''\n']);
         fprintf(fid,'n_channels_dat = %i\n',rez.ops.NchanTOT);
-        fprintf(fid,'dtype = ''int16''\n');
-        fprintf(fid,'offset = 0\n');
+        %fprintf(fid,'dtype = ''int16''\n');
+        fprintf(fid,['dtype = ''',rez.ops.dataTypeString,'''\n']);        
+        %fprintf(fid,'offset = 0\n'); 
+        fprintf(fid,['offset = ',rez.ops.headerBytes,'\n']);
         if mod(rez.ops.fs,1)
             fprintf(fid,'sample_rate = %i\n',rez.ops.fs);
         else
             fprintf(fid,'sample_rate = %i.\n',rez.ops.fs);
         end
+        fprintf(fid,'sample_rate_fractional = %.4f\n',rez.ops.fs);        
+
         fprintf(fid,'hp_filtered = False');
         fclose(fid);
     end

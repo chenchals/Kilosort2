@@ -1,4 +1,9 @@
 function igood = get_good_channels(ops, chanMap)
+% Modifications:
+%    Replaced:
+%        offset = twind + 2*NchanTOT*NT* (ibatch-1);
+%        offset = twind + ops.dataTypeBytes*NchanTOT*NT* (ibatch-1); 
+%
 
 Nbatch = ops.Nbatch;
 twind = ops.twind;
@@ -13,25 +18,16 @@ else
     [b1, a1] = butter(3, ops.fshigh/ops.fs*2, 'high');
 end
 
-% irange = [NT/8:(NT-NT/8)];
-
 ibatch = 1;
 ich = gpuArray.zeros(5e4,1, 'int16');
 k = 0;
 ttime = 0;
-if ~isfield(ops,'dataAdapter')
-    fid = fopen(ops.fbinary, 'r');
-end
+
 while ibatch<=Nbatch
-    offset = twind + 2*NchanTOT*NT* (ibatch-1);
+    offset = twind + ops.dataTypeBytes*NchanTOT*NT* (ibatch-1);
     
-    if ~isfield(ops,'dataAdapter')
-        fseek(fid, offset, 'bof');
-        buff = fread(fid, [NchanTOT NT], '*int16');
-    else
-        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NT, ops.dataTypeString);
-    end
-        
+    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NT, ops.dataTypeString);
+   
     if isempty(buff)
         break;
     end
@@ -58,7 +54,6 @@ while ibatch<=Nbatch
         datr = datr - median(datr, 2);
     end
     
-   
     % determine any threshold crossings
     datr = datr./std(datr,1,1);
     
@@ -75,10 +70,6 @@ while ibatch<=Nbatch
     
     ibatch = ibatch + ceil(Nbatch/100);
     ttime = ttime + size(datr,1)/ops.fs;    
-end
-
-if ~isfield(ops,'dataAdapter')
-   fclose(fid);
 end
 
 ich = ich(1:k);
