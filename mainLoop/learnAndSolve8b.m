@@ -92,8 +92,7 @@ ndrop = zeros(1,2);
 m0 = ops.minFR * ops.NT/ops.fs;
 
 for ibatch = 1:niter
-    
-    %     k = irounds(ibatch);
+
     korder = irounds(ibatch);
     k = isortbatches(korder);
 
@@ -137,7 +136,6 @@ for ibatch = 1:niter
         dWU = dWU(:,:,isort);
         nsp = nsp(isort);        
     end
-
     % decompose dWU by svd of time and space (61 by 61)
     [W, U, mu] = mexSVDsmall2(Params, dWU, W, iC-1, iW-1, Ka, Kb);
   
@@ -212,6 +210,8 @@ for ibatch = 1:niter
             dWU = dWU(:, :, 1:Nfilt);
             nsp = nsp(1:Nfilt);
             mu  = mu(1:Nfilt);            
+%if isempty(mu), fprintf('mu empty after mu  = mu(1:Nfilt)...\n'),end
+
         end
 
     end
@@ -260,6 +260,7 @@ for ibatch = 1:niter
     end
 
     if rem(ibatch, 100)==1
+if isempty(mu), fprintf('mu empty after rem(ibatch, 100)==1...\n'),end
 
         fprintf('%2.2f sec, %d / %d batches, %d units, nspks: %2.4f, mu: %2.4f, nst0: %d, merges: %2.4f, %2.4f \n', ...
             toc, ibatch, niter, Nfilt, sum(nsp), median(mu), numel(st0), ndrop)

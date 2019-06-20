@@ -26,7 +26,7 @@ ttime = 0;
 while ibatch<=Nbatch
     offset = twind + ops.dataTypeBytes*NchanTOT*NT* (ibatch-1);
     
-    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NT, ops.dataTypeString);
+    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NT, ops.dataTypeString, ops.channelOffset);
    
     if isempty(buff)
         break;
