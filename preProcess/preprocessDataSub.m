@@ -1,4 +1,3 @@
-function [rez, DATA] = preprocessDataSub(ops)
 % Modifications
 % Changed all cases where bytes are computed from 
 %     *2 or /2 to --> *dataWidth or /dataWidth
@@ -25,7 +24,6 @@ NT       = ops.NT ;
 NchanTOT = ops.NchanTOT;
 
 bytes = get_file_size(ops.fbinary,ops.headerBytes);
-
 nTimepoints = floor(bytes/NchanTOT/ops.dataTypeBytes);
 ops.tstart = ceil(ops.trange(1) * ops.fs);
 ops.tend   = min(nTimepoints, ceil(ops.trange(2) * ops.fs));
@@ -68,18 +66,21 @@ rez.ycoords = yc;
 rez.ops.chanMap = chanMap;
 rez.ops.kcoords = kcoords; 
 
-%NTbuff      = NT + 4*ops.ntbuff;
-NTbuff      = NT + ops.ntbuff;
+
+NTbuff      = NT + 4*ops.ntbuff;
+
 
 % by how many bytes to offset all the batches
 rez.ops.Nbatch = Nbatch;
 rez.ops.NTbuff = NTbuff;
 rez.ops.chanMap = chanMap;
 
+
 fprintf('Time %3.0fs. Computing whitening matrix.. \n', toc);
 
 % this requires removing bad channels first
 Wrot = get_whitening_matrix(rez);
+
 
 fprintf('Time %3.0fs. Loading raw data and applying filters... \n', toc);
 
@@ -97,8 +98,7 @@ else
 end
 
 for ibatch = 1:Nbatch
-    offset = max(0,...
-        twind ...
+    offset = max(0, ops.twind ...
         + ops.dataTypeBytes*NchanTOT*((NT - ops.ntbuff) * (ibatch-1)...
         - ops.dataTypeBytes*ops.ntbuff)...
         );
@@ -108,8 +108,7 @@ for ibatch = 1:Nbatch
     else
         ioffset = ops.ntbuff;
     end
-    
-    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString); 
+    buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NT, ops.dataTypeString, ops.channelOffset);
 
     if isempty(buff)
         break;

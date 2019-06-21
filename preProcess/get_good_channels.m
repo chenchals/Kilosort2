@@ -54,6 +54,7 @@ while ibatch<=Nbatch
         datr = datr - median(datr, 2);
     end
     
+
     % determine any threshold crossings
     datr = datr./std(datr,1,1);
     

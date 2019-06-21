@@ -155,18 +155,18 @@ rez.ccb = gather(ccb0);
 [ccb1, iorig] = sortBatches2(ccb0);
 
 if ops.fig
-figure;
-subplot(1,2,1)
-imagesc(ccb0, [-5 5]); drawnow
-xlabel('batches')
-ylabel('batches')
-title('batch to batch distance')
-
-subplot(1,2,2)
-imagesc(ccb1, [-5 5]); drawnow
-xlabel('sorted batches')
-ylabel('sorted batches')
-title('AFTER sorting')
+	figure;
+	subplot(1,2,1)
+	imagesc(ccb0, [-5 5]); drawnow
+	xlabel('batches')
+	ylabel('batches')
+	title('batch to batch distance')
+	
+	subplot(1,2,2)
+	imagesc(ccb1, [-5 5]); drawnow
+	xlabel('sorted batches')
+	ylabel('sorted batches')
+	title('AFTER sorting')
 end
 
 rez.iorig = gather(iorig);

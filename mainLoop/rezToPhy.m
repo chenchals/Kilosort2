@@ -168,17 +168,14 @@ if ~isempty(savePath)
         
         fprintf(fid,['dat_path = ''',fname ext '''\n']);
         fprintf(fid,'n_channels_dat = %i\n',rez.ops.NchanTOT);
-        %fprintf(fid,'dtype = ''int16''\n');
-        fprintf(fid,['dtype = ''',rez.ops.dataTypeString,'''\n']);        
-        %fprintf(fid,'offset = 0\n'); 
-        fprintf(fid,['offset = ',rez.ops.headerBytes,'\n']);
+        fprintf(fid,['dtype = ' rez.ops.dataTypeString '\n']);         
+        fprintf(fid,['offset = ' rez.ops.headerBytes '\n']);
         if mod(rez.ops.fs,1)
             fprintf(fid,'sample_rate = %i\n',rez.ops.fs);
         else
             fprintf(fid,'sample_rate = %i.\n',rez.ops.fs);
         end
         fprintf(fid,'sample_rate_fractional = %.4f\n',rez.ops.fs);        
-
         fprintf(fid,'hp_filtered = False');
         fclose(fid);
     end

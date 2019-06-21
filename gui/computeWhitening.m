@@ -59,19 +59,12 @@ else
 end
 
 ibatch = 1;
-if ~isfield(ops,'dataAdapter')
-    fid = fopen(ops.fbinary, 'r');
-end
 while ibatch<=5  
     %drawnow; pause(0.05); 
     offset = max(0, twind + 2*NchanTOT*((NT - ops.ntbuff) * (ibatch-1) - 2*ops.ntbuff));
-        
-    if ~isfield(ops,'dataAdapter')
-        fseek(fid, offset, 'bof');
-        buff = fread(fid, [NchanTOT NTbuff], '*int16');
-    else
-        buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString);
-    end
+    
+     buff = ops.dataAdapter.batchRead(offset,ops.NchanTOT, NTbuff, ops.dataTypeString, ops.channelOffset);
+
 
     if isempty(buff)
         break;
@@ -88,12 +81,6 @@ while ibatch<=5
     ibatch = ibatch + ops.nSkipCov;
 end
 CC = CC / ceil((Nbatch-1)/ops.nSkipCov);
-
-if ~isfield(ops,'dataAdapter')
-   fclose(fid);
-else
-   ops.dataAdapter.closeAll();
-end
 
 if ops.whiteningRange<Inf
     %drawnow; pause(0.05); 
